@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import errno
 import dateutil.parser
@@ -9,7 +9,10 @@ import stat
 import sys
 import time
 
-import api
+try:
+    import api
+except ImportError:
+    from . import api
 
 DIR_MODE = stat.S_IFDIR | 0o755
 FILE_MODE = stat.S_IFREG | 0o444
@@ -61,7 +64,7 @@ class File(object):
             response = requests.get(self.url)
             assert (response.status_code == 200)
             self.content = response.content.decode()
-        return self.content
+        return self.content.encode("utf-8")
 
 class GistUser(object):
 
@@ -163,6 +166,7 @@ class GistFuse(fuse.Operations):
         Raises:
             fuse.FuseOSError(errno.ENOENT) if no such user or file exists
         """
+
         parts = path.split("/")[1:]
 
         user = parts[0]
@@ -176,24 +180,3 @@ class GistFuse(fuse.Operations):
                 return files[filename]
 
         raise fuse.FuseOSError(errno.ENOENT)
-
-if (__name__ == "__main__"):
-    import optparse
-    parser = optparse.OptionParser()
-    parser.add_option("-u", "--users", dest = "users", default = "",
-                      help = "A comma-separated list of additional users "
-                             "whose gists should be made available",
-                      metavar = "USERS")
-    (options, args) = parser.parse_args()
-
-    if (options.users != ""):
-        users = options.users.split(",")
-    else:
-        users = []
-
-    mountpoint = args[0]
-    fuse.FUSE(
-        GistFuse(users),
-        mountpoint,
-        foreground = True
-    )

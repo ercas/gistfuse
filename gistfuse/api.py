@@ -6,7 +6,7 @@ import os
 import requests
 
 FINGERPRINT = "ercas-gistfuse"
-AUTH_JSON = "auth.json"
+AUTH_JSON = "/home/%s/.config/gistfuse-auth.json" % getpass.getuser()
 ENDPOINT = "https://api.github.com"
 
 def get_auth():
